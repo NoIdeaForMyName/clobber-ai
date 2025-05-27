@@ -2,6 +2,7 @@ from enum import Enum
 
 from .game_exceptions import *
 
+from typing import List
 
 class Pawn(Enum):
     WHITE = 'W'
@@ -21,6 +22,7 @@ class Direction(Enum):
     RIGHT = 3
     LEFT = 4
 
+Board = List[List[Pawn]]
 
 class Clobber:
     def __init__(self, n=5, m=6):
@@ -31,10 +33,14 @@ class Clobber:
         for row in self._board:
             for _ in range(n):
                 row.append(pawn)
-                pawn = self.__other_player(pawn)
+                pawn = self.other_player(pawn)
         self._current_player = Pawn.WHITE
         self._game_status = GameStatus.NOT_STARTED
         self._rounds_nb = 0
+
+    @property
+    def board(self):
+        return self._board
 
     @property
     def game_status(self):
@@ -51,48 +57,48 @@ class Clobber:
     def winner(self):
         if self.game_status != GameStatus.ENDED:
             return None
-        return self.__other_player(self.current_player)
+        return self.other_player(self.current_player)
 
-    def __other_player(self, turn=None):
-        if not turn:
-            turn = self._current_player
-        return Pawn.WHITE if turn == Pawn.BLACK else Pawn.BLACK
+    @staticmethod
+    def other_player(player):
+        return Pawn.BLACK if player == Pawn.WHITE else Pawn.WHITE
 
-    def __validate_move(self, i, j, player):
-        if i < 0 or i > self._m - 1 or j < 0 or j > self._n - 1:
+    @staticmethod
+    def validate_move(board, i, j, player):
+        m = len(board)
+        n = len(board[0]) if m > 0 else 0
+        if i < 0 or i >= m or j < 0 or j >= n:
             return False
-        if self._board[i][j] != self.__other_player(player):
+        if board[i][j] != Clobber.other_player(player):
             return False
         return True
 
-    def __can_clobber(self, i, j):
-        player = self._board[i][j]
-        neighbors = []
-        neigbors_pos = [
-            (i-1, j),
-            (i+1, j),
-            (i, j-1),
-            (i, j+1)
+    @staticmethod
+    def can_clobber(board, i, j):
+        player = board[i][j]
+        neighbor_positions = [
+            (i - 1, j),
+            (i + 1, j),
+            (i, j - 1),
+            (i, j + 1)
         ]
-        for n_i, n_j in neigbors_pos:
-            if self.__validate_move(n_i, n_j, player):
-                neighbors.append(self._board[n_i][n_j])
-        for n in neighbors:
-            if n == self.__other_player(player):
+        for ni, nj in neighbor_positions:
+            if Clobber.validate_move(board, ni, nj, player):
                 return True
         return False
 
-    def __game_ended(self):
-        for i in range(len(self._board)):
-            for j in range(len(self._board[i])):
-                field = self._board[i][j]
-                if field == Pawn.WHITE:
-                    if self.__can_clobber(i, j):
+    @staticmethod
+    def game_ended(board):
+        for i in range(len(board)):
+            for j in range(len(board[i])):
+                field = board[i][j]
+                if field in (Pawn.BLACK, Pawn.WHITE):
+                    if Clobber.can_clobber(board, i, j):
                         return False
         return True
 
     def move(self, i, j, direction):
-        chosen_pawn = self._board[i][j]
+        chosen_pawn = self.board[i][j]
         if chosen_pawn != self._current_player:
             raise WrongTurnException
         match direction:
@@ -112,26 +118,30 @@ class Clobber:
                 raise WrongDirectionException
         next_i = i+move_i
         next_j = j+move_j
-        if not self.__validate_move(next_i, next_j, self._current_player):
+        if not self.validate_move(self.board, next_i, next_j, self._current_player):
             raise InvalidMoveException
 
-        self._board[i][j] = Pawn.EMPTY
-        self._board[next_i][next_j] = self._current_player
-        self._current_player = self.__other_player()
+        self.board[i][j] = Pawn.EMPTY
+        self.board[next_i][next_j] = self._current_player
+        self._current_player = self.other_player(self.current_player)
 
         self._rounds_nb += 1
         self._game_status = GameStatus.IN_PROGRESS
-        if self.__game_ended():
+        if self.game_ended(self.board):
             self._game_status = GameStatus.ENDED
 
     def print(self, field_names=False):
+        self.print_board(self.board, self._n, self._m, field_names)
+
+    @staticmethod
+    def print_board(board, n, m, field_names=False):
         if field_names:
             print(end='    ')
-            print('  '.join((chr(letter) for letter in range(ord('A'), ord('A')+self._n))))
+            print('  '.join((chr(letter) for letter in range(ord('A'), ord('A')+n))))
             print(end='    ')
-            print('  '.join(('_' for _ in range(self._n))))
-        for i in range(len(self._board)):
-            row = self._board[i]
+            print('  '.join(('_' for _ in range(n))))
+        for i in range(len(board)):
+            row = board[i]
             if field_names:
-                print(f'{self._m-i}|', end='  ')
+                print(f'{m-i}|', end='  ')
             print('  '.join((str(v) for v in row)))
