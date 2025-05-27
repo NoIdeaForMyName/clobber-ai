@@ -4,9 +4,9 @@ from .game_exceptions import *
 
 
 class Pawn(Enum):
-    WHITE = 'B'
-    BLACK = 'C'
-    EMPTY = 'X'
+    WHITE = 'W'
+    BLACK = 'B'
+    EMPTY = '_'
     def __str__(self):
         return self.value
 
