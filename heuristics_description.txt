@@ -1,0 +1,5 @@
+1. possible_moves_heuristics
+zlicza ile możliwych wszystkich ruchów mają do wykonania gracze i zwraca wynik:
+LICZBA_DLA_MAKSYMALIZOWANEGO - LICZBA_DLA_MINIMALIZOWANEGO
+
+2. TODO
