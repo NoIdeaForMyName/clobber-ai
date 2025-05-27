@@ -61,7 +61,12 @@ class Clobber:
 
     @staticmethod
     def other_player(player):
-        return Pawn.BLACK if player == Pawn.WHITE else Pawn.WHITE
+        if player == Pawn.WHITE:
+            return Pawn.BLACK
+        elif player == Pawn.BLACK:
+            return Pawn.WHITE
+        else:
+            return None
 
     @staticmethod
     def validate_move(board, i, j, player):
