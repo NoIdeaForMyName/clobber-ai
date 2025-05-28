@@ -74,7 +74,8 @@ def minimax_inner(board: Board, maximizing_player: Pawn, player_turn: Pawn, dept
         return copy.deepcopy(board), score
     if depth == 0:
         return copy.deepcopy(board), heuristic(board, maximizing_player)
-    return max(
+    minimax_func = max if player_turn == maximizing_player else min
+    return minimax_func(
         [
             minimax_inner(
                 board=new_board,
