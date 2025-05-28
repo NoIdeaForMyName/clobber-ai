@@ -46,21 +46,41 @@ def main():
 
 
 def minimax(board: Board, maximizing_player: Pawn, player_turn: Pawn, depth: int, heuristic) -> tuple[Board, float]:
-    best_move, best_score = None, -math.inf
+    minimax_func = max if player_turn == maximizing_player else min
+    best_score = -math.inf if maximizing_player == player_turn else math.inf
+
+    best_move = None
+    last_move = None
+
+    alpha = -math.inf
+    beta = math.inf
+
     for new_board in generate_possible_moves(board, player=player_turn):
+        last_move = new_board
         _, curr_score = (
             minimax_inner(
                 board=new_board,
                 maximizing_player=maximizing_player,
                 player_turn=Clobber.other_player(player_turn),
                 depth=depth - 1,
-                heuristic=heuristic
+                heuristic=heuristic,
+                alpha=alpha,
+                beta=beta
             )
         )
-        if curr_score > best_score:
-            best_move, best_score = new_board, curr_score
-            if best_score == math.inf:
-                break
+        if best_score != minimax_func(best_score, curr_score):
+            best_score = minimax_func(best_score, curr_score)
+            best_move = new_board
+        if maximizing_player == player_turn:
+            alpha = max(alpha, curr_score)
+        else:
+            beta = min(beta, curr_score)
+        if beta <= alpha:
+            break
+
+    if not best_move:
+        best_move = last_move
+
     if Clobber.game_ended(best_move):
         score = math.inf if maximizing_player == player_turn else -math.inf
     else:
@@ -68,26 +88,35 @@ def minimax(board: Board, maximizing_player: Pawn, player_turn: Pawn, depth: int
     return best_move, score
 
 
-def minimax_inner(board: Board, maximizing_player: Pawn, player_turn: Pawn, depth: int, heuristic) -> tuple[Board, float]:
+def minimax_inner(board: Board, maximizing_player: Pawn, player_turn: Pawn, depth: int, heuristic, alpha: float, beta: float) -> tuple[Board, float]:
     if Clobber.game_ended(board):
         score = -math.inf if maximizing_player == player_turn else math.inf
         return copy.deepcopy(board), score
     if depth == 0:
         return copy.deepcopy(board), heuristic(board, maximizing_player)
+
     minimax_func = max if player_turn == maximizing_player else min
-    return minimax_func(
-        [
-            minimax_inner(
-                board=new_board,
-                maximizing_player=maximizing_player,
-                player_turn=Clobber.other_player(player_turn),
-                depth=depth - 1,
-                heuristic=heuristic
-            )
-            for new_board in generate_possible_moves(board, player=player_turn)
-        ],
-        key=lambda result: result[1]
-    )
+    best_result = None, -math.inf if maximizing_player == player_turn else math.inf
+
+    for new_board in generate_possible_moves(board, player=player_turn):
+        result = minimax_inner(
+            board=new_board,
+            maximizing_player=maximizing_player,
+            player_turn=Clobber.other_player(player_turn),
+            depth=depth - 1,
+            heuristic=heuristic,
+            alpha=alpha,
+            beta=beta
+        )
+        best_result = minimax_func(best_result, result, key=lambda r: r[1])
+        if maximizing_player == player_turn:
+            alpha = max(alpha, result[1])
+        else:
+            beta = min(beta, result[1])
+        if beta <= alpha:
+            break
+    return best_result
+
 
 
 def generate_possible_moves(board: Board, player: Pawn) -> list[Board]:
