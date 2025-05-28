@@ -1,5 +1,8 @@
-1. possible_moves_heuristics
-zlicza ile możliwych wszystkich ruchów mają do wykonania gracze i zwraca wynik:
-LICZBA_DLA_MAKSYMALIZOWANEGO - LICZBA_DLA_MINIMALIZOWANEGO
+1. active_pawns_heuristics (ofensywa)
+zlicza liczbe pionkow, ktore maja mozliwosc ataku
 
-2. TODO
+2. zajmowanie srodka mapy
+tworzy macierz wartosci pol na planszy, sumuje wartosci dla kazdej z druzyn i zwraca roznice
+
+3. liczba "wysp" pionków (defensywa)
+sumuje osobne "wyspy" (odseparowane grupy) pionkow dla kazdej z druzyn i zwraca roznice pomiedzy wynikami obu druzyn

@@ -102,6 +102,15 @@ class Clobber:
                         return False
         return True
 
+    @staticmethod
+    def neighbor_moves(i, j):
+        return [
+            (i-1, j),
+            (i+1, j),
+            (i, j-1),
+            (i, j+1)
+        ]
+
     def move(self, i, j, direction):
         chosen_pawn = self.board[i][j]
         if chosen_pawn != self._current_player:

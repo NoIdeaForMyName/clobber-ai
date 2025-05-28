@@ -1,1 +1,1 @@
-from .game import Clobber, Direction, GameStatus, Pawn
+from .game import Clobber, Direction, GameStatus, Pawn, Board

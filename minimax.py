@@ -1,5 +1,5 @@
-from game import Clobber
-from game.game import Pawn, Board
+from game import *
+from heuristics import active_pawns_heuristics, center_occupying_heuristics, pawns_accumulations_heuristics
 
 import copy
 import math
@@ -28,7 +28,7 @@ def main():
             maximizing_player=maximizing_player,
             player_turn=player_turn,
             depth=depth,
-            heuristic=possible_moves_heuristics
+            heuristic=pawns_accumulations_heuristics
         )
         if curr_score == -math.inf or curr_score == math.inf:
             result_board = curr_board
@@ -43,36 +43,6 @@ def main():
     print()
     print("Winner:", winner)
     print("Number of moves:", moves_nb)
-
-
-def temp_heuristics(board: Board, maximizing_player: Pawn):
-    from random import uniform
-    return uniform(-1, 1)
-
-
-def possible_moves_heuristics(board: Board, maximizing_player: Pawn):
-    max_player_moves_nb = 0
-    min_player_moves_nb = 0
-
-    def all_moves(i, j):
-        return [
-            (i-1, j),
-            (i+1, j),
-            (i, j-1),
-            (i, j+1)
-        ]
-
-    for i, row in enumerate(board):
-        for j, pawn in enumerate(row):
-            if pawn == Pawn.EMPTY:
-                continue
-            for move_i, move_j in all_moves(i, j):
-                if Clobber.validate_move(board, move_i, move_j, pawn):
-                    if pawn == maximizing_player:
-                        max_player_moves_nb += 1
-                    else:
-                        min_player_moves_nb += 1
-    return max_player_moves_nb - min_player_moves_nb
 
 
 def minimax(board: Board, maximizing_player: Pawn, player_turn: Pawn, depth: int, heuristic) -> tuple[Board, float]:
@@ -120,20 +90,13 @@ def minimax_inner(board: Board, maximizing_player: Pawn, player_turn: Pawn, dept
 
 
 def generate_possible_moves(board: Board, player: Pawn) -> list[Board]:
-    def all_moves(i, j):
-        return [
-            (i-1, j),
-            (i+1, j),
-            (i, j-1),
-            (i, j+1)
-        ]
 
     outcomes = []
 
     for i, row in enumerate(board):
         for j, pawn in enumerate(row):
             if pawn == player:
-                for move_i, move_j in all_moves(i, j):
+                for move_i, move_j in Clobber.neighbor_moves(i, j):
                     if Clobber.validate_move(board, move_i, move_j, player):
                         new_board = copy.deepcopy(board)
                         new_board[i][j] = Pawn.EMPTY
