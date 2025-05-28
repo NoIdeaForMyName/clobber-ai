@@ -22,6 +22,8 @@ def main():
     winner = None
     moves_nb = 0
 
+    scores = []
+
     while not game_ended:
         curr_board, curr_score = minimax(
             board=curr_board,
@@ -35,6 +37,7 @@ def main():
             winner = maximizing_player if curr_score == math.inf else Clobber.other_player(maximizing_player)
             game_ended = True
         moves_nb += 1
+        scores.append(curr_score)
         player_turn = Clobber.other_player(player_turn)
 
     print("Simulation ended!\nResults:\n")
@@ -44,11 +47,14 @@ def main():
     print("Winner:", winner)
     print("Number of moves:", moves_nb)
 
+    print("SCORES:")
+    print(scores)
+
 
 def minimax(board: Board, maximizing_player: Pawn, player_turn: Pawn, depth: int, heuristic) -> tuple[Board, float]:
     best_move, best_score = None, -math.inf
     for new_board in generate_possible_moves(board, player=player_turn):
-        _, curr_score = (
+        curr_score = (
             minimax_inner(
                 board=new_board,
                 maximizing_player=maximizing_player,
@@ -68,12 +74,12 @@ def minimax(board: Board, maximizing_player: Pawn, player_turn: Pawn, depth: int
     return best_move, score
 
 
-def minimax_inner(board: Board, maximizing_player: Pawn, player_turn: Pawn, depth: int, heuristic) -> tuple[Board, float]:
+def minimax_inner(board: Board, maximizing_player: Pawn, player_turn: Pawn, depth: int, heuristic) -> float:
     if Clobber.game_ended(board):
         score = -math.inf if maximizing_player == player_turn else math.inf
-        return copy.deepcopy(board), score
+        return score
     if depth == 0:
-        return copy.deepcopy(board), heuristic(board, maximizing_player)
+        return heuristic(board, maximizing_player)
     minimax_func = max if player_turn == maximizing_player else min
     return minimax_func(
         [
@@ -85,8 +91,7 @@ def minimax_inner(board: Board, maximizing_player: Pawn, player_turn: Pawn, dept
                 heuristic=heuristic
             )
             for new_board in generate_possible_moves(board, player=player_turn)
-        ],
-        key=lambda result: result[1]
+        ]
     )
 
 
